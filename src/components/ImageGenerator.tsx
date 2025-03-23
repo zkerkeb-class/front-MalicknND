@@ -2,191 +2,130 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { apiService } from "@/services/api";
+import { FiDownload } from "react-icons/fi";
+import { MdOutlineGeneratingTokens } from "react-icons/md";
+import { BiImageAlt } from "react-icons/bi";
+// import { apiService } from "@/services/api";
 
 export default function ImageGenerator() {
   const [prompt, setPrompt] = useState("");
-  const [width, setWidth] = useState(1024);
-  const [height, setHeight] = useState(1024);
-  const [samples, setSamples] = useState(1);
-  const [steps, setSteps] = useState(30);
-  const [cfgScale, setCfgScale] = useState(7);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setGeneratedImage(null);
+  const generateImage = async () => {
+    if (!prompt.trim()) {
+      setError("Please enter a description");
+      return;
+    }
 
     try {
-      const result = await apiService.generateImage({
-        prompt,
-        width,
-        height,
-        samples,
-        steps,
-        cfgScale,
-      });
+      setIsGenerating(true);
+      setError(null);
+      setGeneratedImage(null);
 
-      if (result instanceof Blob) {
-        const imageUrl = URL.createObjectURL(result);
-        setGeneratedImage(imageUrl);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/images/generate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            prompt: prompt.trim(),
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Generation failed with status: ${response.status}`);
       }
+
+      // Récupérer l'image en tant que Blob
+      const imageBlob = await response.blob();
+      const imageUrl = URL.createObjectURL(imageBlob);
+      setGeneratedImage(imageUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Une erreur est survenue");
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
-      setLoading(false);
+      setIsGenerating(false);
     }
   };
 
+  // Nettoyer l'URL de l'objet lors du démontage du composant
+  const cleanupImage = () => {
+    if (generatedImage) {
+      URL.revokeObjectURL(generatedImage);
+    }
+  };
+
+  // Nettoyer l'URL de l'objet avant de créer une nouvelle image
+  const handleNewGeneration = async () => {
+    cleanupImage();
+    await generateImage();
+  };
+
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label
-            htmlFor="prompt"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Prompt
-          </label>
-          <textarea
+    <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-sm">
+      <div className="mb-6">
+        <label
+          htmlFor="prompt"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
+          <div className="flex items-center gap-2">
+            <BiImageAlt className="text-xl" />
+            <span>Describe your image</span>
+          </div>
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="text"
             id="prompt"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            rows={3}
-            required
+            placeholder="A serene lake at sunset with mountains in the background..."
+            className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          <button
+            onClick={handleNewGeneration}
+            disabled={isGenerating}
+            className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          >
+            <MdOutlineGeneratingTokens
+              className={`text-xl ${isGenerating ? "animate-spin" : ""}`}
+            />
+            {isGenerating ? "Generating..." : "Generate"}
+          </button>
         </div>
+        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label
-              htmlFor="width"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Largeur
-            </label>
-            <input
-              type="number"
-              id="width"
-              value={width}
-              onChange={(e) => setWidth(Number(e.target.value))}
-              min={512}
-              max={2048}
-              step={64}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="height"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Hauteur
-            </label>
-            <input
-              type="number"
-              id="height"
-              value={height}
-              onChange={(e) => setHeight(Number(e.target.value))}
-              min={512}
-              max={2048}
-              step={64}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label
-              htmlFor="samples"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Nombre d&apos;images
-            </label>
-            <input
-              type="number"
-              id="samples"
-              value={samples}
-              onChange={(e) => setSamples(Number(e.target.value))}
-              min={1}
-              max={4}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="steps"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Étapes
-            </label>
-            <input
-              type="number"
-              id="steps"
-              value={steps}
-              onChange={(e) => setSteps(Number(e.target.value))}
-              min={10}
-              max={50}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="cfgScale"
-              className="block text-sm font-medium text-gray-700"
-            >
-              CFG Scale
-            </label>
-            <input
-              type="number"
-              id="cfgScale"
-              value={cfgScale}
-              onChange={(e) => setCfgScale(Number(e.target.value))}
-              min={0}
-              max={35}
-              step={0.5}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            />
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-        >
-          {loading ? "Génération en cours..." : "Générer l'image"}
-        </button>
-      </form>
-
-      {error && (
-        <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md">
-          {error}
+      {isGenerating && (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black mx-auto"></div>
+          <p className="mt-4 text-gray-600">Creating your masterpiece...</p>
         </div>
       )}
 
-      {generatedImage && (
-        <div className="mt-8">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">
-            Image générée
-          </h2>
-          <div className="relative aspect-square w-full max-w-2xl mx-auto">
+      {generatedImage && !isGenerating && (
+        <div className="space-y-4">
+          <div className="relative aspect-square rounded-lg overflow-hidden">
             <Image
               src={generatedImage}
-              alt="Image générée"
+              alt="Generated image"
               fill
-              className="rounded-lg shadow-lg object-contain"
+              className="object-cover"
               unoptimized
             />
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => window.open(generatedImage, "_blank")}
+              className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <span>Download</span>
+              <FiDownload className="text-lg" />
+            </button>
           </div>
         </div>
       )}
