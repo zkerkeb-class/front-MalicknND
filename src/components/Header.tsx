@@ -6,7 +6,7 @@ const Header = () => {
     <header className="flex justify-between items-center p-4 max-w-7xl mx-auto cursor-pointer">
       <div className="flex items-center">
         <Link href="/" className="text-xl font-bold text-blue-500">
-          <span className="text-xl font-bold text-blue-500  ">Imagify</span>
+          <span className="text-2xl font-bold text-blue-500  ">Imagify</span>
         </Link>
       </div>
       <div className="flex items-center gap-4">
