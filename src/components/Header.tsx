@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import React from "react";
+import { UserButton, useUser } from "@clerk/nextjs";
 
 const Header = () => {
+  const { user } = useUser();
   return (
     <header className="flex justify-between items-center p-4 max-w-7xl mx-auto cursor-pointer">
       <div className="flex items-center">
@@ -13,12 +17,16 @@ const Header = () => {
         <Link href="/pricing" className="text-gray-600 hover:text-gray-900">
           Pricing
         </Link>
-        <Link
-          href="/login"
-          className="bg-black text-white px-4 py-2 rounded-full hover:bg-gray-800"
-        >
-          Login
-        </Link>
+        {user ? (
+          <UserButton />
+        ) : (
+          <Link
+            href="/sign-in"
+            className="bg-black text-white px-4 py-2 rounded-full hover:bg-gray-800"
+          >
+            Login
+          </Link>
+        )}
       </div>
     </header>
   );
