@@ -2,16 +2,24 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { FiDownload } from "react-icons/fi";
+import { FiDownload, FiSave } from "react-icons/fi";
 import { MdOutlineGeneratingTokens } from "react-icons/md";
 import { BiImageAlt } from "react-icons/bi";
-// import { apiService } from "@/services/api";
+import { apiService } from "@/services/api";
 
 export default function ImageGenerator() {
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [advancedSettings, setAdvancedSettings] = useState({
+    width: 1024,
+    height: 1024,
+    steps: 30,
+    cfgScale: 7,
+    samples: 1,
+  });
 
   const generateImage = async () => {
     if (!prompt.trim()) {
@@ -24,27 +32,33 @@ export default function ImageGenerator() {
       setError(null);
       setGeneratedImage(null);
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/images/generate`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            prompt: prompt.trim(),
-          }),
-        }
-      );
+      const params = {
+        prompt: prompt.trim(),
+        width: advancedSettings.width,
+        height: advancedSettings.height,
+        steps: advancedSettings.steps,
+        cfgScale: advancedSettings.cfgScale,
+        samples: advancedSettings.samples,
+        metadata: {
+          generated_by: "frontend",
+          timestamp: new Date().toISOString(),
+          width: advancedSettings.width.toString(),
+          height: advancedSettings.height.toString(),
+          steps: advancedSettings.steps.toString(),
+          cfgScale: advancedSettings.cfgScale.toString(),
+        },
+      };
 
-      if (!response.ok) {
-        throw new Error(`Generation failed with status: ${response.status}`);
+      const response = await apiService.generateImage(params);
+
+      if (response instanceof Blob) {
+        // Une seule image générée
+        const imageUrl = URL.createObjectURL(response);
+        setGeneratedImage(imageUrl);
+      } else {
+        // Plusieurs images générées
+        console.log("Multiple images generated:", response);
       }
-
-      // Récupérer l'image en tant que Blob
-      const imageBlob = await response.blob();
-      const imageUrl = URL.createObjectURL(imageBlob);
-      setGeneratedImage(imageUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -97,13 +111,106 @@ export default function ImageGenerator() {
             {isGenerating ? "Generating..." : "Generate"}
           </button>
         </div>
+
+        {/* Paramètres avancés */}
+        <div className="mt-3">
+          <button
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="text-sm text-gray-600 hover:text-gray-900"
+          >
+            {showAdvanced ? "Hide" : "Show"} advanced settings
+          </button>
+
+          {showAdvanced && (
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Width
+                </label>
+                <input
+                  type="number"
+                  value={advancedSettings.width}
+                  onChange={(e) =>
+                    setAdvancedSettings({
+                      ...advancedSettings,
+                      width: parseInt(e.target.value) || 1024,
+                    })
+                  }
+                  className="w-full text-sm border border-gray-300 rounded px-2 py-1"
+                  min="256"
+                  max="2048"
+                  step="64"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Height
+                </label>
+                <input
+                  type="number"
+                  value={advancedSettings.height}
+                  onChange={(e) =>
+                    setAdvancedSettings({
+                      ...advancedSettings,
+                      height: parseInt(e.target.value) || 1024,
+                    })
+                  }
+                  className="w-full text-sm border border-gray-300 rounded px-2 py-1"
+                  min="256"
+                  max="2048"
+                  step="64"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Steps
+                </label>
+                <input
+                  type="number"
+                  value={advancedSettings.steps}
+                  onChange={(e) =>
+                    setAdvancedSettings({
+                      ...advancedSettings,
+                      steps: parseInt(e.target.value) || 30,
+                    })
+                  }
+                  className="w-full text-sm border border-gray-300 rounded px-2 py-1"
+                  min="10"
+                  max="50"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">
+                  CFG Scale
+                </label>
+                <input
+                  type="number"
+                  value={advancedSettings.cfgScale}
+                  onChange={(e) =>
+                    setAdvancedSettings({
+                      ...advancedSettings,
+                      cfgScale: parseFloat(e.target.value) || 7,
+                    })
+                  }
+                  className="w-full text-sm border border-gray-300 rounded px-2 py-1"
+                  min="1"
+                  max="20"
+                  step="0.5"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
       </div>
 
       {isGenerating && (
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black mx-auto"></div>
-          <p className="mt-4 text-gray-600">Creating your masterpiece...</p>
+          <p className="mt-4 text-gray-600">
+            Creating your masterpiece and saving to storage...
+          </p>
         </div>
       )}
 
@@ -118,14 +225,22 @@ export default function ImageGenerator() {
               unoptimized
             />
           </div>
-          <div className="flex justify-end gap-2">
-            <button
-              onClick={() => window.open(generatedImage, "_blank")}
-              className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <span>Download</span>
-              <FiDownload className="text-lg" />
-            </button>
+
+          <div className="flex justify-between items-center">
+            <div className="flex gap-2">
+              <button
+                onClick={() => window.open(generatedImage, "_blank")}
+                className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <span>Download</span>
+                <FiDownload className="text-lg" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm text-green-600">
+              <FiSave className="text-lg" />
+              <span>Automatically saved to storage</span>
+            </div>
           </div>
         </div>
       )}

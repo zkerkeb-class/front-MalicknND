@@ -14,6 +14,12 @@ const Header = () => {
         </Link>
       </div>
       <div className="flex items-center gap-4">
+        <Link href="/generate" className="text-gray-600 hover:text-gray-900">
+          Generate
+        </Link>
+        <Link href="/gallery" className="text-gray-600 hover:text-gray-900">
+          Gallery
+        </Link>
         <Link href="/pricing" className="text-gray-600 hover:text-gray-900">
           Pricing
         </Link>
