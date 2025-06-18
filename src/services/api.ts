@@ -87,20 +87,43 @@ class ApiService {
   ): Promise<UserImagesResponse> {
     const token = await this.getAuthToken();
 
+    if (!token) {
+      throw new Error("Token d'authentification requis");
+    }
+
+    console.log("🔍 Récupération des images utilisateur...");
+    console.log(
+      "URL:",
+      `${this.imageServiceUrl}/images?page=${page}&limit=${limit}`
+    );
+
     const response = await fetch(
-      `${this.imageServiceUrl}/images/user?page=${page}&limit=${limit}`,
+      `${this.imageServiceUrl}/images?page=${page}&limit=${limit}`,
       {
         headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
       }
     );
 
+    console.log(
+      "📊 Réponse du service Images:",
+      response.status,
+      response.statusText
+    );
+
     if (!response.ok) {
-      throw new Error("Failed to fetch user images");
+      const errorText = await response.text();
+      console.error("❌ Erreur service Images:", errorText);
+      throw new Error(
+        `Failed to fetch user images: ${response.status} ${response.statusText}`
+      );
     }
 
-    return response.json();
+    const data = await response.json();
+    console.log("✅ Données reçues:", data);
+    return data;
   }
 
   async getImageById(
