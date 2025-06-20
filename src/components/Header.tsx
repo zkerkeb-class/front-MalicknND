@@ -15,13 +15,13 @@ const Header = () => {
       </div>
       <div className="flex items-center gap-4">
         <Link href="/generate" className="text-gray-600 hover:text-gray-900">
-          Generate
+          Générer
         </Link>
         <Link href="/gallery" className="text-gray-600 hover:text-gray-900">
-          Gallery
+          Galerie
         </Link>
         <Link href="/pricing" className="text-gray-600 hover:text-gray-900">
-          Pricing
+          Tarifs
         </Link>
         {user ? (
           <UserButton />
@@ -30,7 +30,7 @@ const Header = () => {
             href="/sign-in"
             className="bg-black text-white px-4 py-2 rounded-full hover:bg-gray-800"
           >
-            Login
+            Connexion
           </Link>
         )}
       </div>

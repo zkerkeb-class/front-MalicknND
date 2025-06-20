@@ -12,18 +12,19 @@ export default function Home() {
       <main className="max-w-4xl mx-auto px-4 py-16 text-center">
         <div className="mb-8">
           <h1 className="text-5xl font-bold mb-4">
-            Turn text to <span className="text-blue-500">image</span>, in
-            seconds.
+            Transformez vos idées en{" "}
+            <span className="text-blue-500">images</span> & objets imprimés.
           </h1>
           <p className="text-gray-600 text-lg mb-8">
-            Unleash your creativity with AI. Turn your imagination into visual
-            art in seconds - just type, and watch the magic happen.
+            Créez des visuels uniques avec l&apos;IA, puis imprimez-les sur de
+            vrais produits avec Printify – de l&apos;imagination à la réalité en
+            quelques clics.
           </p>
           <Link
             href="/generate"
             className="bg-black text-white px-6 py-3 rounded-full hover:bg-gray-800 inline-flex items-center"
           >
-            Generate Images
+            Générer une image
             <span className="ml-2">✨</span>
           </Link>
         </div>

@@ -88,7 +88,7 @@ export default function ImageGenerator() {
         >
           <div className="flex items-center gap-2">
             <BiImageAlt className="text-xl" />
-            <span>Describe your image</span>
+            <span>Décrivez votre image</span>
           </div>
         </label>
         <div className="flex gap-2">
@@ -97,7 +97,7 @@ export default function ImageGenerator() {
             id="prompt"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="A serene lake at sunset with mountains in the background..."
+            placeholder="Un lac paisible au coucher de soleil avec des montagnes en arrière-plan..."
             className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
@@ -108,7 +108,7 @@ export default function ImageGenerator() {
             <MdOutlineGeneratingTokens
               className={`text-xl ${isGenerating ? "animate-spin" : ""}`}
             />
-            {isGenerating ? "Generating..." : "Generate"}
+            {isGenerating ? "Génération..." : "Générer"}
           </button>
         </div>
 
@@ -118,7 +118,7 @@ export default function ImageGenerator() {
             onClick={() => setShowAdvanced(!showAdvanced)}
             className="text-sm text-gray-600 hover:text-gray-900"
           >
-            {showAdvanced ? "Hide" : "Show"} advanced settings
+            {showAdvanced ? "Afficher" : "Masquer"} les paramètres avancés
           </button>
 
           {showAdvanced && (

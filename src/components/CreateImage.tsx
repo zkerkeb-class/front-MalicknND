@@ -4,8 +4,10 @@ import React from "react";
 const CreateImage = () => {
   return (
     <section className="py-16">
-      <h2 className="text-3xl font-bold mb-2">Create AI Images</h2>
-      <p className="text-gray-600 mb-12">Turn your imagination into visuals</p>
+      <h2 className="text-3xl font-bold mb-2">Créez des images IA</h2>
+      <p className="text-gray-600 mb-12">
+        Transformez votre imagination en visuels
+      </p>
 
       <div className="grid md:grid-cols-2 gap-8 items-center">
         <div className="rounded-lg overflow-hidden">
@@ -19,18 +21,18 @@ const CreateImage = () => {
         </div>
         <div className="text-left">
           <h3 className="text-2xl font-bold mb-4">
-            Introducing the AI-Powered Text to Image Generator
+            Découvrez le générateur d&apos;images IA à partir de texte
           </h3>
           <p className="text-gray-600 mb-4">
-            Easily bring your ideas to life with our free AI image generator.
-            Whether you need stunning visuals or unique imagery, our tool
-            transforms your text into eye-catching images with just a few
-            clicks.
+            Donnez vie à vos idées avec notre générateur d&apos;images IA
+            gratuit. Que vous ayez besoin de visuels époustouflants ou
+            d&apos;illustrations uniques, notre outil transforme votre texte en
+            images en quelques clics.
           </p>
           <p className="text-gray-600">
-            Simply type in a text prompt, and our cutting-edge AI will generate
-            high-quality images in seconds. From concept to reality, the
-            creative possibilities are limitless!
+            Saisissez simplement une description, et notre IA de pointe générera
+            des images de haute qualité en quelques secondes. Du concept à la
+            réalité, les possibilités créatives sont infinies !
           </p>
         </div>
       </div>

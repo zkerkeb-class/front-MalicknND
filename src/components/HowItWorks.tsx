@@ -3,9 +3,9 @@ import React from "react";
 const HowItWorks = () => {
   return (
     <section className="py-16">
-      <h2 className="text-3xl font-bold mb-2">How it works</h2>
+      <h2 className="text-3xl font-bold mb-2">Comment ça marche</h2>
       <p className="text-gray-600 mb-12">
-        Transform Words Into Stunning Images
+        Transformez vos mots en créations visuelles et objets imprimés
       </p>
 
       <div className="grid gap-8 max-w-2xl mx-auto">
@@ -16,10 +16,10 @@ const HowItWorks = () => {
             </span>
           </div>
           <div>
-            <h3 className="font-semibold mb-2">Describe Your Vision</h3>
+            <h3 className="font-semibold mb-2">Décrivez votre idée</h3>
             <p className="text-gray-600">
-              Type a phrase, sentence, or paragraph that describes the image you
-              want to create.
+              Saisissez une phrase, une description ou un concept : notre IA
+              générera une image unique à partir de votre texte.
             </p>
           </div>
         </div>
@@ -31,10 +31,10 @@ const HowItWorks = () => {
             </span>
           </div>
           <div>
-            <h3 className="font-semibold mb-2">Watch the Magic</h3>
+            <h3 className="font-semibold mb-2">Admirez la magie</h3>
             <p className="text-gray-600">
-              Our AI-powered engine will transform your text into a
-              high-quality, unique image in seconds.
+              Notre moteur IA transforme instantanément votre texte en une image
+              originale et de haute qualité.
             </p>
           </div>
         </div>
@@ -46,10 +46,10 @@ const HowItWorks = () => {
             </span>
           </div>
           <div>
-            <h3 className="font-semibold mb-2">Download & Share</h3>
+            <h3 className="font-semibold mb-2">Imprimez & partagez</h3>
             <p className="text-gray-600">
-              Instantly download your creation or share it with the world
-              directly from our platform.
+              Sélectionnez un produit et imprimez votre création via Printify,
+              ou partagez-la avec le monde.
             </p>
           </div>
         </div>

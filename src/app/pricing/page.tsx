@@ -23,22 +23,22 @@ const page = () => {
 
   const pricingPlans = [
     {
-      name: "Basic",
-      description: "Best for personal use.",
+      name: "Basique",
+      description: "Idéal pour un usage personnel.",
       price: "10€",
-      credits: "/ 100 credits",
+      credits: "/ 100 crédits",
     },
     {
-      name: "Advanced",
-      description: "Best for business use.",
+      name: "Avancé",
+      description: "Parfait pour un usage professionnel.",
       price: "50€",
-      credits: "/ 500 credits",
+      credits: "/ 500 crédits",
     },
     {
-      name: "Business",
-      description: "Best for enterprise use.",
+      name: "Entreprise",
+      description: "Pour les besoins des entreprises.",
       price: "250€",
-      credits: "/ 5000 credits",
+      credits: "/ 5000 crédits",
     },
   ];
 
@@ -47,10 +47,10 @@ const page = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <span className="inline-block bg-white border border-gray-200 rounded-full px-4 py-1.5 text-xs font-semibold text-gray-600 shadow-sm mb-4">
-            OUR PLANS
+            NOS OFFRES
           </span>
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-            Choose the plan
+            Choisissez votre offre
           </h1>
         </div>
 
@@ -79,7 +79,7 @@ const page = () => {
               {/* Added spacer for alignment */}
               <div className="h-8 mb-8"></div>
               <button className="w-full bg-gray-800 text-white py-3 px-6 rounded-lg font-semibold hover:bg-gray-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
-                Get started
+                Commencer
               </button>
             </div>
           ))}

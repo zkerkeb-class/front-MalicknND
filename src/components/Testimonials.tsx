@@ -4,8 +4,8 @@ import React from "react";
 const Testimonials = () => {
   return (
     <section className="py-16">
-      <h2 className="text-3xl font-bold mb-2">Customer testimonials</h2>
-      <p className="text-gray-600 mb-12">What Our Users Are Saying</p>
+      <h2 className="text-3xl font-bold mb-2">Témoignages clients</h2>
+      <p className="text-gray-600 mb-12">Ce que disent nos utilisateurs</p>
 
       <div className="grid md:grid-cols-3 gap-8">
         {[
@@ -39,9 +39,9 @@ const Testimonials = () => {
               {"★".repeat(5)}
             </div>
             <p className="text-gray-600">
-              I&apos;ve been using imagify for nearly two years now for my
-              Instagram, and it has been incredibly user-friendly, making my
-              work much easier.
+              J&apos;utilise Imagify depuis près de deux ans pour mon Instagram,
+              et c&apos;est incroyablement simple d&apos;utilisation, cela a
+              vraiment facilité mon travail.
             </p>
           </div>
         ))}
