@@ -6,6 +6,7 @@ import { FiDownload, FiSave } from "react-icons/fi";
 import { MdOutlineGeneratingTokens } from "react-icons/md";
 import { BiImageAlt } from "react-icons/bi";
 import { apiService } from "@/services/api";
+import toast from "react-hot-toast";
 
 export default function ImageGenerator() {
   const [prompt, setPrompt] = useState("");
@@ -23,47 +24,60 @@ export default function ImageGenerator() {
 
   const generateImage = async () => {
     if (!prompt.trim()) {
-      setError("Please enter a description");
+      toast.error("Veuillez entrer une description.");
       return;
     }
 
-    try {
-      setIsGenerating(true);
-      setError(null);
-      setGeneratedImage(null);
+    // Afficher un toast de chargement
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        setIsGenerating(true);
+        setError(null);
+        setGeneratedImage(null);
 
-      const params = {
-        prompt: prompt.trim(),
-        width: advancedSettings.width,
-        height: advancedSettings.height,
-        steps: advancedSettings.steps,
-        cfgScale: advancedSettings.cfgScale,
-        samples: advancedSettings.samples,
-        metadata: {
-          generated_by: "frontend",
-          timestamp: new Date().toISOString(),
-          width: advancedSettings.width.toString(),
-          height: advancedSettings.height.toString(),
-          steps: advancedSettings.steps.toString(),
-          cfgScale: advancedSettings.cfgScale.toString(),
-        },
-      };
+        const params = {
+          prompt: prompt.trim(),
+          width: advancedSettings.width,
+          height: advancedSettings.height,
+          steps: advancedSettings.steps,
+          cfgScale: advancedSettings.cfgScale,
+          samples: advancedSettings.samples,
+          metadata: {
+            generated_by: "frontend",
+            timestamp: new Date().toISOString(),
+            width: advancedSettings.width.toString(),
+            height: advancedSettings.height.toString(),
+            steps: advancedSettings.steps.toString(),
+            cfgScale: advancedSettings.cfgScale.toString(),
+          },
+        };
 
-      const response = await apiService.generateImage(params);
+        const response = await apiService.generateImage(params);
 
-      if (response instanceof Blob) {
-        // Une seule image générée
-        const imageUrl = URL.createObjectURL(response);
-        setGeneratedImage(imageUrl);
-      } else {
-        // Plusieurs images générées
-        console.log("Multiple images generated:", response);
+        if (response instanceof Blob) {
+          const imageUrl = URL.createObjectURL(response);
+          setGeneratedImage(imageUrl);
+          resolve(imageUrl); // Résoudre la promesse en cas de succès
+        } else {
+          console.log("Plusieurs images générées:", response);
+          resolve(response);
+        }
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Une erreur est survenue";
+        setError(errorMessage);
+        reject(errorMessage); // Rejeter la promesse en cas d'erreur
+      } finally {
+        setIsGenerating(false);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setIsGenerating(false);
-    }
+    });
+
+    // Utiliser toast.promise pour gérer les états
+    toast.promise(promise, {
+      loading: "Génération de votre image...",
+      success: <b>Image générée avec succès !</b>,
+      error: <b>La génération a échoué.</b>,
+    });
   };
 
   // Nettoyer l'URL de l'objet lors du démontage du composant
@@ -209,7 +223,7 @@ export default function ImageGenerator() {
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black mx-auto"></div>
           <p className="mt-4 text-gray-600">
-            Creating your masterpiece and saving to storage...
+            Création de votre chef-d&apos;œuvre et sauvegarde en cours...
           </p>
         </div>
       )}
@@ -228,17 +242,20 @@ export default function ImageGenerator() {
           <div className="flex justify-between items-center">
             <div className="flex gap-2">
               <button
-                onClick={() => window.open(generatedImage, "_blank")}
+                onClick={() => {
+                  window.open(generatedImage, "_blank");
+                  toast.success("Téléchargement lancé !");
+                }}
                 className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <span>Download</span>
+                <span>Télécharger</span>
                 <FiDownload className="text-lg" />
               </button>
             </div>
 
             <div className="flex items-center gap-2 text-sm text-green-600">
               <FiSave className="text-lg" />
-              <span>Automatically saved to storage</span>
+              <span>Sauvegardé automatiquement</span>
             </div>
           </div>
         </div>
