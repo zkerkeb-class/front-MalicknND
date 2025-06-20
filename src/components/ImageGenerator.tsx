@@ -219,10 +219,9 @@ export default function ImageGenerator() {
           <div className="relative aspect-square rounded-lg overflow-hidden">
             <Image
               src={generatedImage}
-              alt="Generated image"
+              alt="Image générée"
               fill
               className="object-cover"
-              unoptimized
             />
           </div>
 

@@ -148,10 +148,9 @@ export default function SavedImages() {
               {image.imageUrl ? (
                 <Image
                   src={image.imageUrl}
-                  alt={image.prompt || "Generated image"}
+                  alt={image.prompt || "Image générée"}
                   fill
                   className="object-cover"
-                  unoptimized
                   onError={() => {
                     console.error(
                       "Erreur de chargement d'image:",
