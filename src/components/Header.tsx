@@ -11,50 +11,49 @@ const Header = () => {
     <header className="sticky top-0 z-50 border-b border-gray-200 backdrop-blur-sm bg-white/95">
       <div className="flex justify-between items-center p-4 max-w-7xl mx-auto">
         {/* Logo */}
-        <div className="flex items-center">
+        <div className="flex items-center gap-5">
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
               Imagink
             </span>
           </Link>
+          {/* Navigation Desktop */}
+          <nav className="hidden md:flex items-center space-x-5 ">
+            {user && (
+              <>
+                <Link
+                  href="/gallery"
+                  className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
+                >
+                  Galerie
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
+                >
+                  Tarifs
+                </Link>
+              </>
+            )}
+
+            {!user && (
+              <>
+                <Link
+                  href="/features"
+                  className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
+                >
+                  Fonctionnalités
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
+                >
+                  Tarifs
+                </Link>
+              </>
+            )}
+          </nav>
         </div>
-
-        {/* Navigation Desktop */}
-        <nav className="hidden md:flex items-center space-x-8">
-          {user && (
-            <>
-              <Link
-                href="/gallery"
-                className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
-              >
-                Galerie
-              </Link>
-              <Link
-                href="/pricing"
-                className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
-              >
-                Tarifs
-              </Link>
-            </>
-          )}
-
-          {!user && (
-            <>
-              <Link
-                href="/features"
-                className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
-              >
-                Fonctionnalités
-              </Link>
-              <Link
-                href="/pricing"
-                className="text-gray-600 hover:text-blue-600 transition-colors font-medium"
-              >
-                Tarifs
-              </Link>
-            </>
-          )}
-        </nav>
 
         {/* Auth buttons */}
         <div className="flex items-center gap-3">
