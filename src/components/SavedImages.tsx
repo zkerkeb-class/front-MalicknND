@@ -5,6 +5,7 @@ import Image from "next/image";
 import { FiDownload, FiTrash2, FiPrinter } from "react-icons/fi";
 import { apiService } from "@/services/api";
 import { useUser } from "@clerk/nextjs";
+import PrintifyProductCreator from "./PrintifyProductCreator";
 
 // Interface pour les données venant de l'API
 interface ApiImage {
@@ -37,6 +38,9 @@ export default function SavedImages() {
   const [images, setImages] = useState<SavedImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [printifyModalOpen, setPrintifyModalOpen] = useState(false);
+  const [selectedImageForPrint, setSelectedImageForPrint] =
+    useState<SavedImage | null>(null);
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -139,7 +143,7 @@ export default function SavedImages() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-        {images.map((image) => (
+        {images.map((image, index) => (
           <div
             key={image.id}
             className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200"
@@ -150,6 +154,8 @@ export default function SavedImages() {
                   src={image.imageUrl}
                   alt={image.prompt || "Image générée"}
                   fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  priority={index === 0}
                   className="object-cover"
                   onError={() => {
                     console.error(
@@ -205,11 +211,16 @@ export default function SavedImages() {
                 <div className="flex-1 flex items-center justify-center p-2 text-gray-400">
                   <FiDownload className="text-sm" />
                 </div>
-
-                <div className="flex-1 flex items-center justify-center p-2 text-gray-400">
+                <button
+                  className="flex-1 flex items-center justify-center p-2 text-blue-500 hover:text-blue-700"
+                  title="Imprimer sur Printify"
+                  onClick={() => {
+                    setSelectedImageForPrint(image);
+                    setPrintifyModalOpen(true);
+                  }}
+                >
                   <FiPrinter className="text-sm" />
-                </div>
-
+                </button>
                 <div className="flex-1 flex items-center justify-center p-2 text-gray-400">
                   <FiTrash2 className="text-sm" />
                 </div>
@@ -218,6 +229,17 @@ export default function SavedImages() {
           </div>
         ))}
       </div>
+      {/* Modale Printify */}
+      <PrintifyProductCreator
+        isOpen={printifyModalOpen}
+        onClose={() => setPrintifyModalOpen(false)}
+        imageUrl={selectedImageForPrint?.imageUrl || ""}
+        // imageFile={...} // Optionnel si tu veux uploader le fichier
+        onProductCreated={() => {
+          setPrintifyModalOpen(false);
+          setSelectedImageForPrint(null);
+        }}
+      />
     </div>
   );
 }
