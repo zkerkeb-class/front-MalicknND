@@ -5,7 +5,9 @@ import Image from "next/image";
 import { FiDownload, FiTrash2, FiPrinter } from "react-icons/fi";
 import { apiService } from "@/services/api";
 import { useUser } from "@clerk/nextjs";
-import PrintifyProductCreator from "./PrintifyProductCreator";
+
+// Import du nouveau composant ProductCreatorForm
+import ProductCreatorForm from "@/components/ProductCreatorForm";
 
 // Interface pour les données venant de l'API
 interface ApiImage {
@@ -38,9 +40,17 @@ export default function SavedImages() {
   const [images, setImages] = useState<SavedImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [printifyModalOpen, setPrintifyModalOpen] = useState(false);
+
+  // États pour le système d'impression avec le nouveau créateur
   const [selectedImageForPrint, setSelectedImageForPrint] =
     useState<SavedImage | null>(null);
+  const [showPrintCreator, setShowPrintCreator] = useState(false);
+
+  // État pour les notifications
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -83,6 +93,85 @@ export default function SavedImages() {
     }
   };
 
+  // Gérer le clic sur "Imprimer"
+  const handlePrintClick = (image: SavedImage, e: React.MouseEvent) => {
+    e.stopPropagation(); // Empêche la navigation
+
+    setSelectedImageForPrint(image);
+    setShowPrintCreator(true);
+  };
+
+  // Fermer le créateur de produit
+  const handleClosePrintCreator = () => {
+    setShowPrintCreator(false);
+    setSelectedImageForPrint(null);
+  };
+
+  // Quand un produit est créé avec succès
+  const handleProductCreated = (productId: string) => {
+    console.log("🎉 Produit Printify créé:", productId);
+
+    // Afficher une notification de succès
+    setNotification({
+      type: "success",
+      message: `Produit créé avec succès ! ID: ${productId}`,
+    });
+
+    // Masquer la notification après 5 secondes
+    setTimeout(() => {
+      setNotification(null);
+    }, 5000);
+
+    // Mettre à jour le statut de l'image
+    if (selectedImageForPrint) {
+      setImages((prev) =>
+        prev.map((img) =>
+          img.id === selectedImageForPrint.id
+            ? { ...img, status: "printed" }
+            : img
+        )
+      );
+    }
+
+    // Fermer le créateur
+    handleClosePrintCreator();
+  };
+
+  // Gérer la suppression d'une image
+  const handleDeleteImage = async (image: SavedImage, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!confirm(`Supprimer l'image "${image.prompt.slice(0, 50)}..." ?`)) {
+      return;
+    }
+
+    try {
+      // Ici tu peux ajouter l'appel API pour supprimer l'image
+      // await apiService.deleteImage(image.id);
+
+      // Pour l'instant, on la supprime juste localement
+      setImages((prev) => prev.filter((img) => img.id !== image.id));
+
+      setNotification({
+        type: "success",
+        message: "Image supprimée avec succès",
+      });
+
+      setTimeout(() => {
+        setNotification(null);
+      }, 3000);
+    } catch (err) {
+      setNotification({
+        type: "error",
+        message: "Erreur lors de la suppression",
+      });
+
+      setTimeout(() => {
+        setNotification(null);
+      }, 3000);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("fr-FR", {
       year: "numeric",
@@ -92,6 +181,29 @@ export default function SavedImages() {
       minute: "2-digit",
     });
   };
+
+  // Si on affiche le créateur de produit, montrer seulement ça
+  if (showPrintCreator && selectedImageForPrint) {
+    const printifyImageFormat = {
+      id: selectedImageForPrint.id,
+      url: selectedImageForPrint.imageUrl,
+      title:
+        selectedImageForPrint.prompt.slice(0, 50) +
+        (selectedImageForPrint.prompt.length > 50 ? "..." : ""),
+      width: 1024,
+      height: 1024,
+    };
+
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <ProductCreatorForm
+          selectedImage={printifyImageFormat}
+          onProductCreated={handleProductCreated}
+          onCancel={handleClosePrintCreator}
+        />
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -130,6 +242,30 @@ export default function SavedImages() {
 
   return (
     <div className="space-y-6">
+      {/* Notification */}
+      {notification && (
+        <div
+          className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${
+            notification.type === "success"
+              ? "bg-green-50 border border-green-200 text-green-800"
+              : "bg-red-50 border border-red-200 text-red-800"
+          }`}
+        >
+          <div className="flex items-center space-x-2">
+            <span className="font-medium">
+              {notification.type === "success" ? "✅" : "❌"}
+            </span>
+            <span>{notification.message}</span>
+            <button
+              onClick={() => setNotification(null)}
+              className="ml-2 text-gray-400 hover:text-gray-600"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">
           Vos Images Sauvegardées ({images.length})
@@ -146,7 +282,7 @@ export default function SavedImages() {
         {images.map((image, index) => (
           <div
             key={image.id}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200"
+            className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200 cursor-pointer group"
           >
             <div className="relative aspect-square">
               {image.imageUrl ? (
@@ -162,7 +298,6 @@ export default function SavedImages() {
                       "Erreur de chargement d'image:",
                       image.imageUrl
                     );
-                    // Optionnel: remplacer par une image de fallback
                   }}
                 />
               ) : (
@@ -193,6 +328,16 @@ export default function SavedImages() {
                     : "📄"}
                 </span>
               </div>
+
+              {/* Overlay avec bouton Imprimer en gros sur hover */}
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center">
+                <button
+                  onClick={(e) => handlePrintClick(image, e)}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium transform hover:scale-105"
+                >
+                  🖨️ Créer un produit
+                </button>
+              </div>
             </div>
 
             <div className="p-3 space-y-2">
@@ -206,40 +351,57 @@ export default function SavedImages() {
                 {formatDate(image.createdAt)}
               </p>
 
-              {/* Icônes sans actions */}
+              {/* Actions */}
               <div className="flex gap-1">
-                <div className="flex-1 flex items-center justify-center p-2 text-gray-400">
+                {/* Télécharger */}
+                <a
+                  href={image.imageUrl}
+                  download={`${image.prompt.slice(0, 30)}.png`}
+                  className="flex-1 flex items-center justify-center p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                  title="Télécharger"
+                >
                   <FiDownload className="text-sm" />
-                </div>
+                </a>
+
+                {/* Créer un produit Printify */}
                 <button
-                  className="flex-1 flex items-center justify-center p-2 text-blue-500 hover:text-blue-700"
-                  title="Imprimer sur Printify"
-                  onClick={() => {
-                    setSelectedImageForPrint(image);
-                    setPrintifyModalOpen(true);
-                  }}
+                  className={`flex-1 flex items-center justify-center p-2 transition-colors ${
+                    image.status === "printed"
+                      ? "text-purple-500 hover:text-purple-700"
+                      : "text-blue-500 hover:text-blue-700"
+                  }`}
+                  title={
+                    image.status === "printed"
+                      ? "Déjà transformé en produit"
+                      : "Créer un produit Printify"
+                  }
+                  onClick={(e) => handlePrintClick(image, e)}
                 >
                   <FiPrinter className="text-sm" />
                 </button>
-                <div className="flex-1 flex items-center justify-center p-2 text-gray-400">
+
+                {/* Supprimer */}
+                <button
+                  className="flex-1 flex items-center justify-center p-2 text-gray-400 hover:text-red-500 transition-colors"
+                  onClick={(e) => handleDeleteImage(image, e)}
+                  title="Supprimer"
+                >
                   <FiTrash2 className="text-sm" />
-                </div>
+                </button>
               </div>
+
+              {/* Bouton Créer un produit visible sur mobile */}
+              <button
+                onClick={(e) => handlePrintClick(image, e)}
+                className="w-full mt-3 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium md:hidden"
+              >
+                🖨️ Créer un produit
+              </button>
             </div>
           </div>
         ))}
       </div>
-      {/* Modale Printify */}
-      <PrintifyProductCreator
-        isOpen={printifyModalOpen}
-        onClose={() => setPrintifyModalOpen(false)}
-        imageUrl={selectedImageForPrint?.imageUrl || ""}
-        // imageFile={...} // Optionnel si tu veux uploader le fichier
-        onProductCreated={() => {
-          setPrintifyModalOpen(false);
-          setSelectedImageForPrint(null);
-        }}
-      />
     </div>
   );
 }
