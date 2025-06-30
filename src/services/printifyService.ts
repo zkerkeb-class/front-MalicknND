@@ -1,6 +1,7 @@
 // services/printifyService.ts
-
-const BASE_URL = "http://localhost:3004/api/printify";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_PRINTIFY_API_URL ||
+  "http://localhost:3004/api/printify";
 
 export interface Blueprint {
   id: number;
@@ -73,16 +74,58 @@ export interface CreatedProduct {
 }
 
 class PrintifyService {
+  private async getAuthToken(): Promise<string | null> {
+    try {
+      // Récupérer le token depuis Clerk avec le bon template
+      if (typeof window !== "undefined") {
+        console.log("Window disponible, vérification de Clerk...");
+
+        // @ts-expect-error - Clerk est disponible globalement
+        if (window.Clerk) {
+          console.log("Clerk disponible");
+          // @ts-expect-error - Clerk session getToken method
+          if (window.Clerk.session) {
+            console.log("Session Clerk disponible");
+            // @ts-expect-error - Clerk session getToken method
+            const token = await window.Clerk.session.getToken();
+            if (token) {
+              console.log("Token Clerk récupéré avec succès");
+              return token;
+            } else {
+              console.error("Token Clerk null - session non authentifiée");
+            }
+          } else {
+            console.error(
+              "Session Clerk non disponible - utilisateur non connecté"
+            );
+          }
+        } else {
+          console.error("Clerk non disponible dans window");
+        }
+      } else {
+        console.error("Window non disponible (SSR)");
+      }
+
+      console.error("Aucun token Clerk disponible - utilisateur non connecté");
+      return null;
+    } catch (error) {
+      console.error("Erreur lors de la récupération du token Clerk:", error);
+      return null;
+    }
+  }
+
   private async fetchApi<T>(
     endpoint: string,
     options?: RequestInit
   ): Promise<T> {
     const url = `${BASE_URL}${endpoint}`;
+    const token = await this.getAuthToken();
 
     try {
       const response = await fetch(url, {
         headers: {
           "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
           ...options?.headers,
         },
         ...options,
@@ -157,6 +200,22 @@ class PrintifyService {
         const sizeOrder = ["XS", "S", "M", "L", "XL", "XXL"];
         return sizeOrder.indexOf(a) - sizeOrder.indexOf(b);
       });
+  }
+
+  // Méthode pour vérifier la santé du service Printify
+  async checkServiceHealth(): Promise<boolean> {
+    try {
+      const response = await fetch(
+        `${BASE_URL.replace("/api/printify", "")}/health`
+      );
+      return response.ok;
+    } catch (error) {
+      console.error(
+        "Erreur lors de la vérification de la santé du service Printify:",
+        error
+      );
+      return false;
+    }
   }
 }
 

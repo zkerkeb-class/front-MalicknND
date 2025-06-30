@@ -148,7 +148,7 @@ export default function ProductFilters({
         <div className="flex flex-wrap gap-2">
           {searchQuery && (
             <div className="flex items-center space-x-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-              <span>Recherche: "{searchQuery}"</span>
+              <span>Recherche: &quot;{searchQuery}&quot;</span>
               <button
                 onClick={() => onSearchChange("")}
                 className="hover:bg-blue-200 rounded-full p-0.5"
