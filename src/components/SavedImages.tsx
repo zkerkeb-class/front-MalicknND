@@ -165,6 +165,7 @@ export default function SavedImages() {
         type: "error",
         message: "Erreur lors de la suppression",
       });
+      console.log(err);
 
       setTimeout(() => {
         setNotification(null);
@@ -390,14 +391,6 @@ export default function SavedImages() {
                   <FiTrash2 className="text-sm" />
                 </button>
               </div>
-
-              {/* Bouton Créer un produit visible sur mobile */}
-              <button
-                onClick={(e) => handlePrintClick(image, e)}
-                className="w-full mt-3 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium md:hidden"
-              >
-                🖨️ Créer un produit
-              </button>
             </div>
           </div>
         ))}

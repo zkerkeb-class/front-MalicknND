@@ -10,6 +10,8 @@ import {
   Variant,
   ProductCreationData,
 } from "@/services/printifyService";
+import ProductFilters, { useProductFilters } from "@/components/ProductFilters";
+import Pagination, { usePagination } from "@/components/Pagination";
 
 interface ProductCreatorFormProps {
   selectedImage: {
@@ -68,6 +70,25 @@ export default function ProductCreatorForm({
       );
     }
   }, [selectedImage, productTitle]);
+
+  // Utilisation des hooks personnalisés pour les filtres et la pagination
+  const {
+    searchQuery,
+    selectedBrand,
+    filteredBlueprints,
+    hasActiveFilters,
+    setSearchQuery,
+    setSelectedBrand,
+    clearFilters,
+  } = useProductFilters(blueprints);
+
+  const {
+    currentPage,
+    totalPages,
+    currentItems: paginatedBlueprints,
+    totalItems,
+    goToPage,
+  } = usePagination(filteredBlueprints, 6);
 
   const loadBlueprints = async () => {
     try {
@@ -141,7 +162,7 @@ export default function ProductCreatorForm({
     setSelectedVariants(newSelectedVariants);
   };
 
-  const handleSizeSelect = (variantId: number, color: string) => {
+  const handleSizeSelect = (variantId: number) => {
     if (selectedVariants.includes(variantId)) {
       setSelectedVariants((prev) => prev.filter((id) => id !== variantId));
     } else {
@@ -295,40 +316,121 @@ export default function ProductCreatorForm({
           <div className="lg:col-span-2 space-y-6">
             {/* Sélection du type de produit */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold mb-4">
+              <h2 className="text-lg font-semibold mb-6">
                 1. Choisissez le type de produit
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {blueprints.map((blueprint) => (
-                  <button
-                    key={blueprint.id}
-                    onClick={() => handleBlueprintSelect(blueprint)}
-                    className={`p-4 border-2 rounded-lg text-left transition-all ${
-                      selectedBlueprint?.id === blueprint.id
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    {blueprint.images[0] && (
-                      <div className="aspect-square relative mb-3 rounded-md overflow-hidden bg-gray-100">
-                        <Image
-                          src={blueprint.images[0]}
-                          alt={blueprint.title}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    )}
-                    <h3 className="font-medium text-gray-900">
-                      {blueprint.title}
-                    </h3>
-                    <p className="text-sm text-gray-500">{blueprint.brand}</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {blueprint.model}
-                    </p>
-                  </button>
-                ))}
-              </div>
+
+              {/* Filtres et recherche */}
+              <ProductFilters
+                blueprints={blueprints}
+                searchQuery={searchQuery}
+                selectedBrand={selectedBrand}
+                onSearchChange={setSearchQuery}
+                onBrandChange={setSelectedBrand}
+                onClearFilters={clearFilters}
+              />
+
+              {/* Résultats et grille des produits */}
+              {filteredBlueprints.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-gray-400 mb-4">
+                    <svg
+                      className="w-16 h-16 mx-auto"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1}
+                        d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33M15 21H9a2 2 0 01-2-2V5a2 2 0 012-2h6a2 2 0 012 2v14a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-gray-500 text-lg mb-2">
+                    Aucun produit trouvé
+                  </p>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Essayez de modifier vos critères de recherche
+                  </p>
+                  {hasActiveFilters && (
+                    <button
+                      onClick={clearFilters}
+                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    >
+                      Effacer tous les filtres
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="mt-6 space-y-6">
+                  {/* Informations sur les résultats */}
+                  <div className="flex justify-between items-center text-sm text-gray-600">
+                    <span>
+                      {totalItems} produit{totalItems > 1 ? "s" : ""} trouvé
+                      {totalItems > 1 ? "s" : ""}
+                    </span>
+                    <span>
+                      Page {currentPage} sur {totalPages}
+                    </span>
+                  </div>
+
+                  {/* Grille des produits */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {paginatedBlueprints.map((blueprint) => (
+                      <button
+                        key={blueprint.id}
+                        onClick={() => handleBlueprintSelect(blueprint)}
+                        className={`group p-4 border-2 rounded-xl text-left transition-all duration-200 hover:shadow-lg hover:-translate-y-1 ${
+                          selectedBlueprint?.id === blueprint.id
+                            ? "border-blue-500 bg-blue-50 shadow-md"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        {blueprint.images[0] && (
+                          <div className="aspect-square relative mb-4 rounded-lg overflow-hidden bg-gray-100">
+                            <Image
+                              src={blueprint.images[0]}
+                              alt={blueprint.title}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-200"
+                            />
+                            {selectedBlueprint?.id === blueprint.id && (
+                              <div className="absolute inset-0 bg-blue-600 bg-opacity-20 flex items-center justify-center">
+                                <div className="bg-blue-600 text-white rounded-full p-2">
+                                  <FiCheck className="w-5 h-5" />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div className="space-y-2">
+                          <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                            {blueprint.title}
+                          </h3>
+                          <p className="text-sm text-blue-600 font-medium">
+                            {blueprint.brand}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {blueprint.model}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={goToPage}
+                    showInfo={true}
+                    totalItems={totalItems}
+                    itemsPerPage={6}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Sélection du fournisseur */}
@@ -422,7 +524,7 @@ export default function ProductCreatorForm({
                                     <button
                                       key={variant.id}
                                       onClick={() =>
-                                        handleSizeSelect(variant.id, color)
+                                        handleSizeSelect(variant.id)
                                       }
                                       className={`px-3 py-2 rounded-md text-sm border-2 transition-all ${
                                         selectedVariants.includes(variant.id)
