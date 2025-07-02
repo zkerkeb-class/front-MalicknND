@@ -1,19 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { FiDownload, FiSave } from "react-icons/fi";
+import { FiDownload, FiSave, FiCreditCard } from "react-icons/fi";
 import { MdOutlineGeneratingTokens } from "react-icons/md";
 import { BiImageAlt } from "react-icons/bi";
 import { apiService } from "@/services/api";
+import { paymentService } from "@/services/paymentService";
 import toast from "react-hot-toast";
+import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 export default function ImageGenerator() {
+  const { user } = useUser();
+  const router = useRouter();
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [userCredits, setUserCredits] = useState<number>(0);
+  const [isLoadingCredits, setIsLoadingCredits] = useState(true);
   const [advancedSettings, setAdvancedSettings] = useState({
     width: 1024,
     height: 1024,
@@ -22,9 +29,43 @@ export default function ImageGenerator() {
     samples: 1,
   });
 
+  // Charger les crédits de l'utilisateur
+  useEffect(() => {
+    if (user?.id) {
+      loadUserCredits();
+    }
+  }, [user?.id]);
+
+  const loadUserCredits = async () => {
+    try {
+      setIsLoadingCredits(true);
+      const credits = await paymentService.getUserCredits(user!.id);
+      setUserCredits(credits.credits);
+    } catch (error) {
+      console.error("Error loading credits:", error);
+      setUserCredits(0);
+    } finally {
+      setIsLoadingCredits(false);
+    }
+  };
+
   const generateImage = async () => {
     if (!prompt.trim()) {
       toast.error("Veuillez entrer une description.");
+      return;
+    }
+
+    if (!user?.id) {
+      toast.error("Vous devez être connecté pour générer une image.");
+      return;
+    }
+
+    // Vérifier les crédits avant de générer
+    if (userCredits <= 0) {
+      toast.error(
+        "Vous n'avez plus de crédits. Veuillez en acheter pour continuer."
+      );
+      router.push("/pricing");
       return;
     }
 
@@ -34,6 +75,10 @@ export default function ImageGenerator() {
         setIsGenerating(true);
         setError(null);
         setGeneratedImage(null);
+
+        // Utiliser un crédit avant de générer
+        const creditResult = await paymentService.useCredits(user.id, 1);
+        setUserCredits(creditResult.remainingCredits);
 
         const params = {
           prompt: prompt.trim(),
@@ -95,6 +140,41 @@ export default function ImageGenerator() {
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-sm">
+      {/* Affichage des crédits */}
+      <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FiCreditCard className="text-blue-600 text-xl" />
+            <span className="text-sm font-medium text-blue-900">
+              Crédits disponibles
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {isLoadingCredits ? (
+              <div className="animate-pulse bg-blue-200 h-6 w-12 rounded"></div>
+            ) : (
+              <>
+                <span className="text-2xl font-bold text-blue-600">
+                  {userCredits}
+                </span>
+                <span className="text-sm text-blue-700">crédits</span>
+              </>
+            )}
+          </div>
+        </div>
+        {userCredits <= 0 && (
+          <div className="mt-2 text-sm text-red-600">
+            Vous n&apos;avez plus de crédits.{" "}
+            <button
+              onClick={() => router.push("/pricing")}
+              className="text-blue-600 hover:underline font-medium"
+            >
+              Acheter des crédits
+            </button>
+          </div>
+        )}
+      </div>
+
       <div className="mb-6">
         <label
           htmlFor="prompt"

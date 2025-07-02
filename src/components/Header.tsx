@@ -1,11 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { UserButton, useUser } from "@clerk/nextjs";
+import { paymentService } from "@/services/paymentService";
 
 const Header = () => {
   const { user } = useUser();
+  const [userCredits, setUserCredits] = useState<number>(0);
+  const [isLoadingCredits, setIsLoadingCredits] = useState(true);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadUserCredits();
+    }
+  }, [user?.id]);
+
+  const loadUserCredits = async () => {
+    try {
+      setIsLoadingCredits(true);
+      const credits = await paymentService.getUserCredits(user!.id);
+      setUserCredits(credits.credits);
+    } catch (error) {
+      console.error("Error loading credits:", error);
+      setUserCredits(0);
+    } finally {
+      setIsLoadingCredits(false);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 backdrop-blur-sm bg-white/95">
@@ -61,8 +83,16 @@ const Header = () => {
             <div className="flex items-center gap-3">
               {/* Indicateur de crédits */}
               <div className="hidden sm:flex items-center text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                15 crédits
+                <span
+                  className={`w-2 h-2 rounded-full mr-2 ${
+                    userCredits > 0 ? "bg-green-500" : "bg-red-500"
+                  }`}
+                ></span>
+                {isLoadingCredits ? (
+                  <span className="animate-pulse">Chargement...</span>
+                ) : (
+                  <span>{userCredits} crédits</span>
+                )}
               </div>
 
               {/* UserButton avec configuration mobile */}
