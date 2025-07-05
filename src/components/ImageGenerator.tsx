@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { FiDownload, FiSave, FiCreditCard } from "react-icons/fi";
 import { MdOutlineGeneratingTokens } from "react-icons/md";
@@ -10,6 +10,7 @@ import { paymentService } from "@/services/paymentService";
 import toast from "react-hot-toast";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { useUserCredits } from "@/context/UserCreditsContext";
 
 export default function ImageGenerator() {
   const { user } = useUser();
@@ -19,8 +20,6 @@ export default function ImageGenerator() {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [userCredits, setUserCredits] = useState<number>(0);
-  const [isLoadingCredits, setIsLoadingCredits] = useState(true);
   const [advancedSettings, setAdvancedSettings] = useState({
     width: 1024,
     height: 1024,
@@ -29,25 +28,7 @@ export default function ImageGenerator() {
     samples: 1,
   });
 
-  // Charger les crédits de l'utilisateur
-  useEffect(() => {
-    if (user?.id) {
-      loadUserCredits();
-    }
-  }, [user?.id]);
-
-  const loadUserCredits = async () => {
-    try {
-      setIsLoadingCredits(true);
-      const credits = await paymentService.getUserCredits(user!.id);
-      setUserCredits(credits.credits);
-    } catch (error) {
-      console.error("Error loading credits:", error);
-      setUserCredits(0);
-    } finally {
-      setIsLoadingCredits(false);
-    }
-  };
+  const { credits, refreshCredits } = useUserCredits();
 
   const generateImage = async () => {
     if (!prompt.trim()) {
@@ -61,7 +42,7 @@ export default function ImageGenerator() {
     }
 
     // Vérifier les crédits avant de générer
-    if (userCredits <= 0) {
+    if (credits <= 0) {
       toast.error(
         "Vous n'avez plus de crédits. Veuillez en acheter pour continuer."
       );
@@ -77,8 +58,8 @@ export default function ImageGenerator() {
         setGeneratedImage(null);
 
         // Utiliser un crédit avant de générer
-        const creditResult = await paymentService.useCredits(user.id, 1);
-        setUserCredits(creditResult.remainingCredits);
+        await paymentService.useCredits(user.id, 1);
+        await refreshCredits();
 
         const params = {
           prompt: prompt.trim(),
@@ -150,19 +131,11 @@ export default function ImageGenerator() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            {isLoadingCredits ? (
-              <div className="animate-pulse bg-blue-200 h-6 w-12 rounded"></div>
-            ) : (
-              <>
-                <span className="text-2xl font-bold text-blue-600">
-                  {userCredits}
-                </span>
-                <span className="text-sm text-blue-700">crédits</span>
-              </>
-            )}
+            <span className="text-2xl font-bold text-blue-600">{credits}</span>
+            <span className="text-sm text-blue-700">crédits</span>
           </div>
         </div>
-        {userCredits <= 0 && (
+        {credits <= 0 && (
           <div className="mt-2 text-sm text-red-600">
             Vous n&apos;avez plus de crédits.{" "}
             <button

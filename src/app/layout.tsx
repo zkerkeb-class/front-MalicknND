@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Poppins } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import { UserCreditsProvider } from "@/context/UserCreditsContext";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -23,14 +24,16 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body className={poppins.className}>
-          <Header />
-          <Toaster position="bottom-center" />
-          {children}
-          <Footer />
-        </body>
-      </html>
+      <UserCreditsProvider>
+        <html lang="en">
+          <body className={poppins.className}>
+            <Header />
+            <Toaster position="bottom-center" />
+            {children}
+            <Footer />
+          </body>
+        </html>
+      </UserCreditsProvider>
     </ClerkProvider>
   );
 }
