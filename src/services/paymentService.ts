@@ -37,7 +37,16 @@ class PaymentService {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to fetch user credits");
+      let errorMsg = "Failed to fetch user credits";
+      try {
+        const errorData = await response.json();
+        if (errorData?.error) errorMsg += `: ${errorData.error}`;
+        if (errorData?.details) errorMsg += ` (${errorData.details})`;
+      } catch (e) {
+        // ignore, fallback to default error
+        console.log(e);
+      }
+      throw new Error(errorMsg);
     }
 
     const data = await response.json();
@@ -66,11 +75,17 @@ class PaymentService {
 
     if (!response.ok) {
       if (response.status === 402) {
-        // Crédits insuffisants
-        // const errorData = await response.json();
         throw new Error("Insufficient credits");
       }
-      throw new Error("Failed to use credits");
+      let errorMsg = "Failed to use credits";
+      try {
+        const errorData = await response.json();
+        if (errorData?.error) errorMsg += `: ${errorData.error}`;
+        if (errorData?.details) errorMsg += ` (${errorData.details})`;
+      } catch (e) {
+        console.log(e);
+      }
+      throw new Error(errorMsg);
     }
 
     const data = await response.json();
@@ -94,7 +109,15 @@ class PaymentService {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to create payment session");
+      let errorMsg = "Failed to create payment session";
+      try {
+        const errorData = await response.json();
+        if (errorData?.error) errorMsg += `: ${errorData.error}`;
+        if (errorData?.details) errorMsg += ` (${errorData.details})`;
+      } catch (e) {
+        console.error("Error creating payment session:", e);
+      }
+      throw new Error(errorMsg);
     }
 
     const data = await response.json();
@@ -111,7 +134,15 @@ class PaymentService {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to fetch credit packages");
+      let errorMsg = "Failed to fetch credit packages";
+      try {
+        const errorData = await response.json();
+        if (errorData?.error) errorMsg += `: ${errorData.error}`;
+        if (errorData?.details) errorMsg += ` (${errorData.details})`;
+      } catch (e) {
+        console.log(e);
+      }
+      throw new Error(errorMsg);
     }
 
     const data = await response.json();
@@ -137,7 +168,6 @@ class PaymentService {
       })
       .catch((error) => {
         console.error("Error creating payment session:", error);
-        // Rediriger vers la page pricing en cas d'erreur
         window.location.href = "/pricing?error=payment_failed";
       });
   }
