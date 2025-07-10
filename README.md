@@ -1,18 +1,170 @@
-# Frontend - Interface Utilisateur Next.js
+# 🎨 Imagink - Plateforme de Génération d'Images IA & Print-on-Demand
 
-## 📋 Description
+## 📋 Vue d'ensemble du Projet
 
-Interface utilisateur moderne développée avec **Next.js 15**, **React 19** et **Tailwind CSS**. Cette application permet aux utilisateurs de générer des images par IA, consulter leur historique et gérer leurs créations.
+**Imagink** est une plateforme complète de génération d'images par IA et de création de produits personnalisés (print-on-demand). Le projet suit une architecture microservices moderne avec un frontend Next.js et plusieurs services backend spécialisés.
 
-## 🏗️ Architecture
+### 🎯 Fonctionnalités Principales
+- **Génération d'images IA** avec Stability AI (Stable Diffusion 3.5)
+- **Stockage sécurisé** des images via Supabase
+- **Création de produits** personnalisés via Printify (T-shirts, mugs, etc.)
+- **Système de crédits** avec paiements Stripe
+- **Notifications automatiques** par email
+- **Interface moderne** et responsive
 
-- **Framework** : Next.js 15
-- **UI** : React 19 + Tailwind CSS 4
-- **Authentification** : Clerk
-- **État** : React Hooks
+## 🏗️ Architecture Microservices
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │  Service IA     │    │ Service Images  │
+│   (Next.js)     │◄──►│  (Port 9000)    │◄──►│  (Port 5002)    │
+│   (Port 3000)   │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Service Payment │    │ Service BDD     │    │ Service Printify│
+│ (Port 9001)     │    │ (Port 9002)     │    │ (Port 3004)     │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│Service Notif.   │    │   Supabase      │    │   Printify      │
+│(Port 3005)      │    │  (Storage/DB)   │    │   (External)    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+## 🔗 Repositories des Services
+
+### 🎨 Frontend (Ce repository)
+- **Repository** : [front-MalicknND](https://github.com/zkerkeb-class/front-MalicknND)
+- **Technologies** : Next.js 15, React 19, Tailwind CSS, Clerk
 - **Port** : 3000
+- **Description** : Interface utilisateur moderne pour la génération d'images et la gestion des produits
 
-## 🎨 Fonctionnalités
+### 🤖 Service IA - Génération d'Images
+- **Repository** : [service-ia-MalicknND](https://github.com/zkerkeb-class/service-ia-MalicknND)
+- **Technologies** : Node.js, Express, Stability AI API
+- **Port** : 9000
+- **Description** : Service de génération d'images avec Stable Diffusion 3.5 Large
+
+### 🖼️ Service Images - Stockage
+- **Repository** : [image-service-MalicknND](https://github.com/MalicknND/image-service-MalicknND)
+- **Technologies** : Node.js, Express, Supabase Storage
+- **Port** : 5002
+- **Description** : Gestion et stockage des images générées par IA
+
+### 🗄️ Service BDD - Base de Données
+- **Repository** : [bdd-services-MalicknND](https://github.com/zkerkeb-class/bdd-services-MalicknND)
+- **Technologies** : Node.js, Express, PostgreSQL, Prisma ORM
+- **Port** : 9002
+- **Description** : Service de base de données centralisée pour les métadonnées
+
+### 🎨 Service Printify - Print-on-Demand
+- **Repository** : [printify-service-MalicknND](https://github.com/zkerkeb-class/printify-service-MalicknND)
+- **Technologies** : Node.js, Express, Printify API
+- **Port** : 3004
+- **Description** : Création de produits personnalisés via Printify
+
+### 💳 Service Payment - Paiements
+- **Repository** : [payment-services-MalicknND](https://github.com/zkerkeb-class/payment-services-MalicknND)
+- **Technologies** : Node.js, Express, Stripe
+- **Port** : 9001
+- **Description** : Gestion des paiements et système de crédits
+
+### 📧 Service Notifications
+- **Repository** : [notification-mail-sms-service-MalicknND](https://github.com/zkerkeb-class/notification-mail-sms-service-MalicknND)
+- **Technologies** : Node.js, Express, Nodemailer, Clerk Webhooks
+- **Port** : 3005
+- **Description** : Notifications par email automatiques
+
+### 📊 Service Métriques (Optionnel)
+- **Repository** : [metrics-service-MalicknND](https://github.com/zkerkeb-class/metrics-service-MalicknND)
+- **Technologies** : Prometheus, Grafana
+- **Description** : Monitoring et métriques des services
+
+## 🔄 Workflow Complet
+
+### 1. **Génération d'Image**
+```
+Frontend → Service IA → Service Images → Supabase + Service BDD
+    ↓           ↓           ↓              ↓
+Saisie    Génération   Stockage      Persistance
+Prompt    IA          Image         Métadonnées
+```
+
+### 2. **Création de Produit**
+```
+Frontend → Service Printify → Service BDD
+    ↓           ↓              ↓
+Sélection   Création      Enregistrement
+Image      Produit       Base données
+```
+
+### 3. **Achat de Crédits**
+```
+Frontend → Service Payment → Stripe → Webhook → Crédits
+    ↓           ↓           ↓         ↓         ↓
+Achat      Session      Paiement   Confirmation Ajout
+```
+
+## 🚀 Installation et Démarrage
+
+### Prérequis
+- Node.js 18+
+- npm ou yarn
+- Compte Clerk configuré
+- Clés API (Stability AI, Supabase, Printify, Stripe)
+
+### Démarrage Rapide
+```bash
+# 1. Cloner tous les repositories
+git clone https://github.com/zkerkeb-class/front-MalicknND.git
+git clone https://github.com/zkerkeb-class/service-ia-MalicknND.git
+git clone https://github.com/MalicknND/image-service-MalicknND.git
+git clone https://github.com/zkerkeb-class/bdd-services-MalicknND.git
+git clone https://github.com/zkerkeb-class/printify-service-MalicknND.git
+git clone https://github.com/zkerkeb-class/payment-services-MalicknND.git
+git clone https://github.com/zkerkeb-class/notification-mail-sms-service-MalicknND.git
+
+# 2. Démarrer tous les services
+./start-all.sh
+
+# 3. Ou arrêter tous les services
+./stop-all.sh
+```
+
+### Configuration Frontend
+```bash
+cd front-MalicknND
+
+# Installer les dépendances
+npm install
+
+# Configuration
+cp .env.example .env
+```
+
+### Variables d'environnement Frontend
+```env
+# Clerk (Authentification)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+
+# Services Backend
+NEXT_PUBLIC_IA_SERVICE_URL=http://localhost:9000
+NEXT_PUBLIC_IMAGE_SERVICE_URL=http://localhost:5002
+NEXT_PUBLIC_BDD_SERVICE_URL=http://localhost:9002
+NEXT_PUBLIC_PRINTIFY_SERVICE_URL=http://localhost:3004
+NEXT_PUBLIC_PAYMENT_SERVICE_URL=http://localhost:9001
+
+# Application
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+## 🎨 Fonctionnalités Frontend
 
 ### 🔐 Authentification
 - Connexion/déconnexion avec Clerk
@@ -31,209 +183,88 @@ Interface utilisateur moderne développée avec **Next.js 15**, **React 19** et 
 - Actions (télécharger, supprimer, partager)
 - Pagination
 
-### 🎛️ Paramètres
-- Configuration des préférences
-- Gestion du compte utilisateur
-- Thème (clair/sombre)
+### 🛍️ Création de Produits
+- Sélection d'image générée
+- Choix du type de produit (T-shirt, mug, etc.)
+- Prévisualisation du produit
+- Création via Printify
 
-## 🚀 Installation et Démarrage
+### 💰 Système de Crédits
+- Affichage des crédits disponibles
+- Achat de crédits via Stripe
+- Historique des transactions
 
-### Prérequis
-- Node.js 18+
-- npm ou yarn
-- Compte Clerk configuré
-- Services backend démarrés
+### 📧 Notifications
+- Notifications automatiques par email
+- Confirmation de génération d'image
+- Confirmation de création de produit
 
-### Installation
-```bash
-# Cloner le projet
-git clone <repository>
-cd front-MalicknND
 
-# Installer les dépendances
-npm install
-
-# Configuration
-cp .env.example .env
-```
-
-### Configuration
-```env
-# Clerk (Authentification)
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_SECRET_KEY=sk_test_...
-
-# Services Backend
-NEXT_PUBLIC_IA_SERVICE_URL=http://localhost:9000
-NEXT_PUBLIC_IMAGE_SERVICE_URL=http://localhost:5002
-
-# Application
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
-
-### Démarrage
-```bash
-# Développement
-npm run dev
-
-# Production
-npm run build
-npm start
-
-# Linting
-npm run lint
-```
-
-## 📁 Structure du Projet
-
-```
-front-MalicknND/
-├── app/                    # App Router Next.js 15
-│   ├── (auth)/            # Routes protégées
-│   │   ├── dashboard/     # Tableau de bord
-│   │   ├── generate/      # Génération d'images
-│   │   ├── gallery/       # Galerie d'images
-│   │   └── settings/      # Paramètres
-│   ├── api/               # API Routes
-│   ├── globals.css        # Styles globaux
-│   ├── layout.tsx         # Layout principal
-│   └── page.tsx           # Page d'accueil
-├── components/            # Composants réutilisables
-│   ├── ui/               # Composants UI de base
-│   ├── forms/            # Formulaires
-│   ├── layout/           # Composants de layout
-│   └── features/         # Composants métier
-├── lib/                  # Utilitaires et configurations
-├── hooks/                # Custom React Hooks
-├── types/                # Types TypeScript
-└── public/               # Assets statiques
-```
-
-## 🎨 Composants Principaux
-
-### ImageGenerator
-```tsx
-// Composant de génération d'images
-<ImageGenerator
-  onGenerate={(image) => console.log(image)}
-  onError={(error) => console.error(error)}
-/>
-```
-
-### ImageGallery
-```tsx
-// Galerie d'images avec pagination
-<ImageGallery
-  images={images}
-  onDelete={(id) => handleDelete(id)}
-  onDownload={(url) => handleDownload(url)}
-/>
-```
-
-### PromptInput
-```tsx
-// Saisie de prompts avec suggestions
-<PromptInput
-  value={prompt}
-  onChange={setPrompt}
-  suggestions={suggestions}
-  onGenerate={handleGenerate}
-/>
-```
-
-## 🔐 Authentification avec Clerk
-
-### Configuration
-```tsx
-// app/layout.tsx
-import { ClerkProvider } from '@clerk/nextjs'
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return (
-    <ClerkProvider>
-      <html lang="fr">
-        <body>{children}</body>
-      </html>
-    </ClerkProvider>
-  )
-}
-```
-
-### Protection des routes
-```tsx
-// app/(auth)/dashboard/page.tsx
-import { auth } from '@clerk/nextjs'
-import { redirect } from 'next/navigation'
-
-export default async function DashboardPage() {
-  const { userId } = await auth()
-  
-  if (!userId) {
-    redirect('/sign-in')
-  }
-  
-  return <Dashboard userId={userId} />
-}
-```
-
-### Middleware
-```tsx
-// middleware.ts
-import { authMiddleware } from "@clerk/nextjs"
-
-export default authMiddleware({
-  publicRoutes: ["/", "/sign-in", "/sign-up"]
-})
-
-export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
-}
-```
-
-## 🔄 Communication avec les Services
+## 🔧 Communication avec les Services
 
 ### Service IA
 ```typescript
-// lib/api/ia.ts
-export async function generateImage(prompt: string, options: GenerationOptions) {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_IA_SERVICE_URL}/api/images/generate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${await getToken()}`
-    },
-    body: JSON.stringify({ prompt, options })
-  })
-  
-  return response.json()
-}
+// Génération d'image
+const response = await fetch(`${process.env.NEXT_PUBLIC_IA_SERVICE_URL}/api/images/generate`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${await getToken()}`
+  },
+  body: JSON.stringify({ prompt, options })
+});
 ```
 
 ### Service Images
 ```typescript
-// lib/api/images.ts
-export async function getUserImages(userId: string, page = 1, limit = 10) {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_IMAGE_SERVICE_URL}/api/images?page=${page}&limit=${limit}`,
-    {
-      headers: {
-        'Authorization': `Bearer ${await getToken()}`
-      }
+// Récupération des images
+const response = await fetch(
+  `${process.env.NEXT_PUBLIC_IMAGE_SERVICE_URL}/api/images?page=${page}&limit=${limit}`,
+  {
+    headers: {
+      'Authorization': `Bearer ${await getToken()}`
     }
-  )
-  
-  return response.json()
-}
+  }
+);
+```
+
+### Service BDD
+```typescript
+// Récupération des produits
+const response = await fetch(
+  `${process.env.NEXT_PUBLIC_BDD_SERVICE_URL}/api/products?userId=${userId}`
+);
+```
+
+### Service Printify
+```typescript
+// Création de produit
+const response = await fetch('/api/printify/product/create', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${clerkToken}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(productData)
+});
+```
+
+### Service Payment
+```typescript
+// Achat de crédits
+const response = await fetch('/api/payment/create-session', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ packageId, userId })
+});
 ```
 
 ## 🎨 Interface Utilisateur
 
 ### Design System
-- **Couleurs** : Palette cohérente avec thème clair/sombre
+- **Couleurs** : Palette cohérente
 - **Typographie** : Inter pour une meilleure lisibilité
 - **Espacement** : Système de spacing Tailwind
 - **Composants** : Design system unifié
@@ -243,16 +274,12 @@ export async function getUserImages(userId: string, page = 1, limit = 10) {
 - **Tablette** : Adaptation pour écrans moyens
 - **Desktop** : Interface complète pour grands écrans
 
-### Animations
-- **Transitions** : Animations fluides
-- **Loading States** : États de chargement
-- **Micro-interactions** : Feedback utilisateur
 
 ## 📊 Gestion d'État
 
 ### React Hooks
 ```typescript
-// hooks/useImages.ts
+// Hook personnalisé pour les images
 export function useImages(userId: string) {
   const [images, setImages] = useState<Image[]>([])
   const [loading, setLoading] = useState(false)
@@ -276,130 +303,17 @@ export function useImages(userId: string) {
 
 ### Context API
 ```typescript
-// context/AppContext.tsx
-export const AppContext = createContext<AppContextType | undefined>(undefined)
+// Context pour les crédits utilisateur
+export const UserCreditsContext = createContext<UserCreditsContextType | undefined>(undefined)
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
-  const [user, setUser] = useState<User | null>(null)
+export function UserCreditsProvider({ children }: { children: React.ReactNode }) {
+  const [credits, setCredits] = useState<number>(0)
+  const [loading, setLoading] = useState<boolean>(false)
   
   return (
-    <AppContext.Provider value={{ theme, setTheme, user, setUser }}>
+    <UserCreditsContext.Provider value={{ credits, setCredits, loading, setLoading }}>
       {children}
-    </AppContext.Provider>
+    </UserCreditsContext.Provider>
   )
 }
 ```
-
-## 🧪 Tests
-
-### Tests unitaires
-```bash
-npm test
-```
-
-### Tests d'intégration
-```bash
-npm run test:integration
-```
-
-### Tests E2E
-```bash
-npm run test:e2e
-```
-
-## 📈 Performance
-
-### Optimisations
-- **SSR/SSG** : Rendu côté serveur
-- **Image Optimization** : Optimisation automatique des images
-- **Code Splitting** : Chargement à la demande
-- **Caching** : Mise en cache intelligente
-
-### Métriques
-- **LCP** : < 2.5s
-- **FID** : < 100ms
-- **CLS** : < 0.1
-- **Bundle Size** : < 500KB
-
-## 🔧 Configuration Avancée
-
-### Tailwind CSS
-```javascript
-// tailwind.config.js
-module.exports = {
-  content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
-  theme: {
-    extend: {
-      colors: {
-        primary: {
-          50: '#eff6ff',
-          // ...
-          900: '#1e3a8a',
-        }
-      }
-    }
-  }
-}
-```
-
-### ESLint
-```javascript
-// .eslintrc.json
-{
-  "extends": [
-    "next/core-web-vitals",
-    "@typescript-eslint/recommended"
-  ],
-  "rules": {
-    "@typescript-eslint/no-unused-vars": "error",
-    "prefer-const": "error"
-  }
-}
-```
-
-## 🚀 Déploiement
-
-### Vercel (Recommandé)
-```bash
-# Installation de Vercel CLI
-npm i -g vercel
-
-# Déploiement
-vercel
-
-# Variables d'environnement
-vercel env add NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-vercel env add CLERK_SECRET_KEY
-```
-
-### Autres plateformes
-- **Netlify** : Compatible avec Next.js
-- **AWS Amplify** : Déploiement automatique
-- **Docker** : Containerisation
-
-## 📝 Notes de développement
-
-### Bonnes pratiques
-- **TypeScript** : Utilisation stricte des types
-- **ESLint** : Code quality automatisée
-- **Prettier** : Formatage cohérent
-- **Git Hooks** : Validation avant commit
-
-### Structure des commits
-```
-feat: ajouter la génération d'images
-fix: corriger l'authentification Clerk
-docs: mettre à jour la documentation
-style: améliorer l'interface utilisateur
-```
-
-### Évolutions futures
-- **PWA** : Application web progressive
-- **Offline** : Support hors ligne
-- **Push Notifications** : Notifications push
-- **Analytics** : Suivi des utilisateurs
